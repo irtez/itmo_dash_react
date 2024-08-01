@@ -1,7 +1,7 @@
 import requests
 import pandas as pd
 from config import CONFIG
-from main import collection
+#from main import collection
 from bs4 import BeautifulSoup as bs
 import datetime as dt
 
@@ -59,15 +59,21 @@ async def fetch_itmo():
         .reset_index(drop=True)
     return res_agg
 
-async def write_metrics():
+async def write_metrics(collection):
     res_agg = await fetch_itmo()
     metrics = {}
     metrics['БВИ всего'] = res_agg[res_agg.max_score >= 100].shape[0]
     metrics['БВИ с приоритетом > 1'] = res_agg[(res_agg.max_score >= 100) & (res_agg.max_prior > 1)].shape[0]
-    metrics['Сдают экз и 0 баллов'] = res_agg[
+    metrics['Сдают экзамен, 0 баллов'] = res_agg[
         (res_agg.max_score == 0) & (res_agg.postup_types.apply(str).str.contains('ВЭ'))
     ].shape[0]
     metrics['> 0 и < 100 баллов'] = res_agg[(res_agg.max_score < 100) & (res_agg.max_score > 0)].shape[0]
+    metrics['Проходной балл (с учетом всех БВИ)'] = res_agg[(res_agg.max_score < 100) & (res_agg.max_score > 0)] \
+            .max_score \
+            .iloc[205 - metrics['БВИ всего'] - 1]
+    metrics['Проходной балл (с учетом БВИ приоритет = 1)'] = res_agg[(res_agg.max_score < 100) & (res_agg.max_score > 0)] \
+            .max_score \
+            .iloc[205 - (metrics['БВИ всего'] - metrics['БВИ с приоритетом > 1']) - 1]
     now = dt.datetime.now()#.strftime('%Y-%m-%d %H:%M:%S')
     metrics = [
         {
@@ -79,3 +85,9 @@ async def write_metrics():
     ]
     collection.insert_many(metrics)
     return True
+
+def get_day_suffix(day):
+    if 11 <= day <= 13:
+        return 'th'
+    else:
+        return {1: 'st', 2: 'nd', 3: 'rd'}.get(day % 10, 'th')

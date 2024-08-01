@@ -1,11 +1,11 @@
 import axios from 'axios'
 
 const guestInstance = axios.create({
-    baseURL: 'http://localhost:5000'
+    baseURL: 'http://localhost:5555'
 })
 
 const authInstance = axios.create({
-    baseURL: 'http://localhost:5000'
+    baseURL: 'http://localhost:5555'
 })
 
 

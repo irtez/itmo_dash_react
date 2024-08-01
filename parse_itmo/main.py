@@ -11,6 +11,7 @@ from fastapi import FastAPI, Query, Body
 from fastapi.logger import logger
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
+import datetime as dt
 
 from config import CONFIG
 from exception_handler import validation_exception_handler, python_exception_handler
@@ -20,14 +21,14 @@ client = MongoClient('mongodb://localhost:27017/')
 db = client['Metrics_ITMO']
 collection = db['Metrics']
 
-from utils import write_metrics
+import utils as u
 
 INTERVAL = 30
 
 async def periodic_task():
     while True:
         logger.info("Started collecting metrics")
-        res = await write_metrics()
+        res = await u.write_metrics(collection)
         if res:
             logger.info(f"Collected metrics, sleeping {INTERVAL} sec")
         else:
@@ -67,17 +68,27 @@ app.add_exception_handler(Exception, python_exception_handler)
 
 
 data_pipeline = [
-    {
-        "$sort": {"datetime": -1}  # Сортировка по дате в обратном порядке
-    },
-    {
-        "$group": {
+        # Группировка по имени метрики
+        {"$group": {
             "_id": "$metric_name",
-            "latest_value": {"$first": "$value"},
-            "latest_datetime": {"$first": "$datetime"}
-        }
-    }
-]
+            "latest_records": {
+                "$topN": {
+                    "n": 1000,
+                    "output": {
+                        "value": "$value",
+                        "datetime": "$datetime"
+                    },
+                    "sortBy": {"datetime": 1}
+                }
+            }
+        }},
+        # Преобразование результата
+        {"$project": {
+            "metric_name": "$_id",
+            "records": "$latest_records",
+            "_id": 0
+        }}
+    ]
 
 @app.get(
         '/api/metrics',
@@ -90,8 +101,8 @@ async def get_metrics():
     """
     Get metrics
     """
-    latest_metrics = list(collection.aggregate(data_pipeline))
-    return latest_metrics
+    latest_metrics = list(collection.aggregate(data_pipeline))  
+    return sorted(latest_metrics, key=lambda x: x['metric_name'])
 
 
 if __name__ == '__main__':

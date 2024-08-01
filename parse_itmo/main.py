@@ -70,7 +70,7 @@ data_pipeline = [
             "_id": "$metric_name",
             "latest_records": {
                 "$topN": {
-                    "n": 1000,
+                    "n": 1440,
                     "output": {
                         "value": "$value",
                         "datetime": "$datetime"

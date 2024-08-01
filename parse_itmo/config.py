@@ -6,7 +6,8 @@ GLOBAL_CONFIG = {
         '09 04 01': 'https://abit.itmo.ru/rating/master/budget/1896',
         '11 04 02': 'https://abit.itmo.ru/rating/master/budget/1917',
         '27 04 05': 'https://abit.itmo.ru/rating/master/budget/1954'
-    }
+    },
+    'our_ids': ['19536506600', '14887345416']
 }
 
 # Environment specific config, or overwrite of GLOBAL_CONFIG

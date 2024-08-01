@@ -48,9 +48,17 @@
 }
 
 .metric_value {
-    font-size: 24px;
+    font-size: 20px;
 }
 
 .metric_datetime {
     font-size: 14px;
+}
+
+.double_metric {
+    gap: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
 }

@@ -1,15 +1,14 @@
 // eslint-disable-next-line
 import React, { useState, useEffect} from 'react';
-import classes from './Document.module.css';
+import classes from './Dashboard.module.css';
 import { getMetrics } from '../../http/metricAPI';
 import Loading from '../Loading';
 import '@react-pdf-viewer/core/lib/styles/index.css';
 import Plot from 'react-plotly.js';
 
-const interval_s = 30 // sec
+const interval_s = 60 // sec
 
 function formatDate(date) {
-  console.log(typeof date);
   const months = [
       "January", "February", "March", "April", "May", "June", 
       "July", "August", "September", "October", "November", "December"
@@ -42,7 +41,7 @@ const parseISODate = (isoString) => {
   return new Date(isoString);
 };
 
-const Document = () => {
+const Dashboard = () => {
   const [metrics, setMetrics] = useState([])
   const fetchMetrics = async () => {
     try {
@@ -61,13 +60,8 @@ const Document = () => {
     }
   }
   useEffect(() => {
-    // Первоначальная загрузка метрик
     fetchMetrics();
-
-    // Установка интервала для обновления метрик каждые 30 секунд
     const interval = setInterval(fetchMetrics, interval_s * 1000);
-
-    // Очистка интервала при размонтировании компонента
     return () => clearInterval(interval);
   }, []);
 
@@ -78,7 +72,8 @@ const Document = () => {
       {
         metrics.length ? (
           metrics.map((metric) => (
-            <div className={classes.metric_main}>
+           !((metric.metric_name === 'Баллы') || (metric.metric_name === 'Место')) ?
+            (<div className={classes.metric_main}>
               <div key={metric.metric_name} className={classes.metric_div}>
                 <p className={classes.metric_name}><b>{metric.metric_name}</b></p>
                 <p className={classes.metric_value}>{metric.records[metric.records.length - 1].value}</p>
@@ -90,14 +85,39 @@ const Document = () => {
                   x: metric.records.map((record) => record.datetime),
                   y: metric.records.map((record) => record.value),
                   type: 'plot',
-                  // mode: 'lines+markers',
-                  // marker: {color: 'red'},
                 },
-                // {type: 'bar', x: [1, 2, 3], y: [2, 5, 3]},
               ]}
               layout={ {width: 600, height: 350, title: metric.metric_name} }
             />
-          </div>
+          </div>) : (
+            <div className={classes.metric_main}>
+            <div key={metric.metric_name} className={classes.metric_div}>
+              <p className={classes.metric_name}><b>{metric.metric_name}</b></p>
+              <p className={classes.metric_value}>
+                Kaban: {metric.records[metric.records.length - 1].value[0] + " | "}
+                qBayes: {metric.records[metric.records.length - 1].value[1]}
+              </p>
+              <p className={classes.metric_datetime}>{formatDate(metric.records[metric.records.length - 1].datetime)}</p>
+            </div>
+            <Plot
+            data={[
+              {
+                x: metric.records.map((record) => record.datetime),
+                y: metric.records.map((record) => record.value[0]),
+                type: 'plot',
+                name: "Kaban"
+              },
+              {
+                x: metric.records.map((record) => record.datetime),
+                y: metric.records.map((record) => record.value[1]),
+                type: 'plot',
+                name: "qBayes"
+              },
+            ]}
+            layout={ {width: 600, height: 350, title: metric.metric_name} }
+          />
+        </div>
+          )
           ))
         ) : (<Loading height='50vh' />)
         
@@ -107,4 +127,4 @@ const Document = () => {
   )
 }
 
-export default Document;
+export default Dashboard;

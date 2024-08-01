@@ -1,5 +1,3 @@
-import os
-import sys
 from typing import List
 import logging
 from pymongo import MongoClient
@@ -7,11 +5,10 @@ import asyncio
 from contextlib import asynccontextmanager
 
 import uvicorn
-from fastapi import FastAPI, Query, Body
+from fastapi import FastAPI
 from fastapi.logger import logger
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
-import datetime as dt
 
 from config import CONFIG
 from exception_handler import validation_exception_handler, python_exception_handler
@@ -23,7 +20,7 @@ collection = db['Metrics']
 
 import utils as u
 
-INTERVAL = 30
+INTERVAL = 60
 
 async def periodic_task():
     while True:
@@ -101,8 +98,11 @@ async def get_metrics():
     """
     Get metrics
     """
-    latest_metrics = list(collection.aggregate(data_pipeline))  
-    return sorted(latest_metrics, key=lambda x: x['metric_name'])
+    latest_metrics = list(collection.aggregate(data_pipeline))
+    latest_metrics = sorted(latest_metrics, key=lambda x: x['metric_name'])
+    for el in latest_metrics:
+        el['metric_name'] =  el['metric_name'][3:]
+    return latest_metrics
 
 
 if __name__ == '__main__':

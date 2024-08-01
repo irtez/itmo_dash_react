@@ -3,7 +3,7 @@ import { guestInstance, authInstance } from './axios'
 
 export const getMetrics = async () => {
     try {
-        const response = await guestInstance.get('api/metrics')
+        const response = await guestInstance.get('metrics')
         return response.data
     } catch (e) {
         alert(e.response.data.message)

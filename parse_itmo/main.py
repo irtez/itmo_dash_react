@@ -14,9 +14,9 @@ from config import CONFIG
 from exception_handler import validation_exception_handler, python_exception_handler
 from schema import Metric
 
-client = MongoClient('mongodb://localhost:27017/')
-db = client['Metrics_ITMO']
-collection = db['Metrics']
+client = MongoClient(CONFIG['mongo_host'])
+db = client[CONFIG['mongo_db']]
+collection = db[CONFIG['mongo_collection']]
 
 import utils as u
 

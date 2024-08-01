@@ -1,0 +1,107 @@
+a {
+    text-decoration: none;
+    color: #fff;
+  }
+ul {
+list-style: none;
+}
+header {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    padding: 0.1em 4em;
+    background: #161a20;
+    box-shadow: 0 5px 20px 5px rgba(0, 0, 0, 0.3);
+    z-index: 10;
+ }
+header nav {
+    width: 100%;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+}
+
+header a {
+    padding: 1em 2em;
+    border: 1px solid transparent;
+    border-radius: 0.3em;
+    transition: 0.3s;
+}
+header a:hover {
+    border: 1px solid #f05454;
+}
+
+.imglogo {
+    width: 50px;
+    transition: 0.1s;
+}
+.imglogo:hover {
+    transform: scale(1.2);
+}
+
+.headerblock {
+    width: 100%;
+    display: flex;
+    justify-content: space-evenly;
+    align-items: center;
+    flex-direction: row;
+    padding: 1em;
+}
+
+.headerblock p {
+    font-family: 'Courier New', Courier, monospace;
+}
+
+.ofname {
+    color: crimson;
+    font-size: 24px;
+    font-weight: 600;    
+}
+
+.phonetext a{
+    font-size: 24px;
+    text-decoration: solid;
+}
+
+.addresscontainer {
+    width: 50%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.namecontainer,
+.addresswrapper {
+    width: 40%;
+    display: flex;
+    justify-content: flex-start;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+
+
+.logincontainer a,
+.logincontainer button {
+    background-color: rgb(61, 89, 141);
+    padding: 0.8em 1.4em;
+    border-radius: 10px;    
+    border: 1px solid transparent;  
+    cursor: pointer;
+    color: white;
+    box-shadow: 0 5px 20px 10px rgba(0, 0, 0, 0.3);
+    transition: 0.3s;
+    font-size: 16px;
+}
+
+.logincontainer button {
+    margin-left: 1.5em;
+}
+
+.logincontainer a:hover,
+.logincontainer button:hover {
+    border-color: #f05454;
+    box-shadow: 0 0px 10px 10px rgba(222, 220, 220, 0.3);
+    
+}

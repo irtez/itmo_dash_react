@@ -75,10 +75,11 @@ async def write_metrics(collection):
             .max_score \
             .iloc[205 - (metrics['1. БВИ всего'] - metrics['2. БВИ с приоритетом > 1']) - 1]
     bvi_docs = res_agg[(res_agg.max_score >= 100) & (res_agg.orig_docs == 'да')]
-    metrics['7. Все БВИ, подавшие доки'] = bvi_docs.shape[0]
-    metrics['8. БВИ с приоритетом = 1, подавшие доки'] = bvi_docs[bvi_docs.max_prior == 1].shape[0]
-    metrics['9. Место'] = (res_agg[res_agg.id.isin(CONFIG['our_ids'])].index + 1).tolist()
-    metrics['10. Баллы'] = res_agg[res_agg.id.isin(CONFIG['our_ids'])].max_score.tolist()
+    metrics['7. Место'] = (res_agg[res_agg.id.isin(CONFIG['our_ids'])].index + 1).tolist()
+    metrics['8. Баллы'] = res_agg[res_agg.id.isin(CONFIG['our_ids'])].max_score.tolist()
+    metrics['9. Все БВИ, подавшие доки'] = bvi_docs.shape[0]
+    metrics['10. БВИ с приоритетом = 1, подавшие доки'] = bvi_docs[bvi_docs.max_prior == 1].shape[0]
+    
     
     now = dt.datetime.now()#.strftime('%Y-%m-%d %H:%M:%S')
     metrics = [

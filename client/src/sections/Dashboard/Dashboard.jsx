@@ -13,7 +13,7 @@ function formatID(v, idx) {
     res = "<b>" + v + "</b>";
   }
   if (Number(idx) > 205) {
-    res = "☠️ " + res; 
+    res = "☠️" + res; 
   }
   return res;
 }

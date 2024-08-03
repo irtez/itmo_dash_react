@@ -7,11 +7,15 @@ import Plot from 'react-plotly.js';
 
 const interval_s = 60 // sec
 
-function formatID(v) {
+function formatID(v, idx) {
+  let res = "";
   if (v === 'KABAN' || v === 'QBAYES') {
-    return "<b>" + v + "</b>";
+    res = "<b>" + v + "</b>";
   }
-  return v;
+  if (Number(idx) > 205) {
+    res = "☠️ " + res; 
+  }
+  return res;
 }
 
 function formatStrOrArr(v) {
@@ -79,7 +83,10 @@ const Table = ({table}) => {
                         borderBottom: (Number(chel.index) === 205) ? ('2px solid red') : ('1px solid black')
                       }} >
                           <td>{chel.index}</td>
-                          <td dangerouslySetInnerHTML={{__html: formatID(chel.id)}}></td>
+                          <td dangerouslySetInnerHTML={
+                            {__html: formatID(chel.id, chel.index)}
+                            }>
+                          </td>
                           <td>{chel.max_score}</td>
                           <td>{chel.only_exam}</td>
                           <td>{chel.only_dop}</td>

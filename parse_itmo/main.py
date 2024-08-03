@@ -93,39 +93,47 @@ app.add_exception_handler(Exception, python_exception_handler)
 #     }}
 # ]
 data_pipeline = [
-    # Сортировка по дате в порядке убывания
-    {"$sort": {"datetime": -1}},
-    # Ограничение до 1440 элементов
-    {"$limit": 1440},
-    # Группировка по имени метрики
-    {"$group": {
-        "_id": "$metric_name",
-        "latest_records": {
-            "$push": {
-                "value": "$value",
-                "datetime": "$datetime"
+    # Сначала группируем по имени метрики и собираем все записи в массив
+    {
+        "$group": {
+            "_id": "$metric_name",
+            "all_records": {
+                "$push": {
+                    "value": "$value",
+                    "datetime": "$datetime"
+                }
             }
         }
-    }},
-    # Преобразование результата
-    {"$project": {
-        "metric_name": "$_id",
-        "records": "$latest_records",
-        "_id": 0
-    }},
-    # Окончательная сортировка внутри групп по дате в порядке возрастания
-    {"$unwind": "$records"},
-    {"$sort": {"records.datetime": 1}},
-    {"$group": {
-        "_id": "$metric_name",
-        "records": {"$push": "$records"}
-    }},
-    {"$project": {
-        "metric_name": "$_id",
-        "records": "$records",
-        "_id": 0
-    }}
+    },
+    # Затем сортируем массивы и берем последние 1440 записей
+    {
+        "$project": {
+            "metric_name": "$_id",
+            "records": {
+                "$slice": [
+                    {
+                        "$reverseArray": {
+                            "$sortArray": {
+                                "input": "$all_records",
+                                "sortBy": {"datetime": 1}
+                            }
+                        }
+                    },
+                    1440
+                ]
+            }
+        }
+    },
+    # Преобразование результата, чтобы удалить _id
+    {
+        "$project": {
+            "_id": 0,
+            "metric_name": 1,
+            "records": 1
+        }
+    }
 ]
+
 
 
 @app.get(

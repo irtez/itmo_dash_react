@@ -46,7 +46,6 @@ const Dashboard = () => {
   const fetchMetrics = async () => {
     try {
       const raw_data = await getMetrics()
-      console.log(raw_data)
       const data = raw_data.map(metric => ({
         ...metric,
         records: metric.records.map(record => ({

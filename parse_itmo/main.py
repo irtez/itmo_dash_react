@@ -56,7 +56,13 @@ app = FastAPI(
 )
 
 # Allow CORS for local debugging
-app.add_middleware(CORSMiddleware, allow_origins=["*"])
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["https://itmodash.ru"],  # Укажите домен вашего фронтенда
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Load custom exception handlers
 app.add_exception_handler(RequestValidationError, validation_exception_handler)
@@ -64,28 +70,63 @@ app.add_exception_handler(Exception, python_exception_handler)
 
 
 
+# data_pipeline = [
+#     # Группировка по имени метрики
+#     {"$group": {
+#         "_id": "$metric_name",
+#         "latest_records": {
+#             "$topN": {
+#                 "n": 1440,
+#                 "output": {
+#                     "value": "$value",
+#                     "datetime": "$datetime"
+#                 },
+#                 "sortBy": {"datetime": 1}
+#             }
+#         }
+#     }},
+#     # Преобразование результата
+#     {"$project": {
+#         "metric_name": "$_id",
+#         "records": "$latest_records",
+#         "_id": 0
+#     }}
+# ]
 data_pipeline = [
-        # Группировка по имени метрики
-        {"$group": {
-            "_id": "$metric_name",
-            "latest_records": {
-                "$topN": {
-                    "n": 1440,
-                    "output": {
-                        "value": "$value",
-                        "datetime": "$datetime"
-                    },
-                    "sortBy": {"datetime": 1}
-                }
+    # Сортировка по дате в порядке убывания
+    {"$sort": {"datetime": -1}},
+    # Ограничение до 1440 элементов
+    {"$limit": 1440},
+    # Группировка по имени метрики
+    {"$group": {
+        "_id": "$metric_name",
+        "latest_records": {
+            "$push": {
+                "value": "$value",
+                "datetime": "$datetime"
             }
-        }},
-        # Преобразование результата
-        {"$project": {
-            "metric_name": "$_id",
-            "records": "$latest_records",
-            "_id": 0
-        }}
-    ]
+        }
+    }},
+    # Преобразование результата
+    {"$project": {
+        "metric_name": "$_id",
+        "records": "$latest_records",
+        "_id": 0
+    }},
+    # Окончательная сортировка внутри групп по дате в порядке возрастания
+    {"$unwind": "$records"},
+    {"$sort": {"records.datetime": 1}},
+    {"$group": {
+        "_id": "$metric_name",
+        "records": {"$push": "$records"}
+    }},
+    {"$project": {
+        "metric_name": "$_id",
+        "records": "$records",
+        "_id": 0
+    }}
+]
+
 
 @app.get(
         '/api/metrics',

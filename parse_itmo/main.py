@@ -115,7 +115,7 @@ data_pipeline = [
                         "$reverseArray": {
                             "$sortArray": {
                                 "input": "$all_records",
-                                "sortBy": {"datetime": 1}
+                                "sortBy": {"datetime": -1}
                             }
                         }
                     },

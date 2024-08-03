@@ -93,43 +93,38 @@ app.add_exception_handler(Exception, python_exception_handler)
 #     }}
 # ]
 data_pipeline = [
-    # Сначала группируем по имени метрики и собираем все записи в массив
+    # Сортировка по metric_name и datetime
+    {"$sort": {"metric_name": 1, "datetime": 1}},
+    
+    # Группировка по метрике и сбор последних 1440 значений
     {
         "$group": {
             "_id": "$metric_name",
-            "all_records": {
-                "$push": {
-                    "value": "$value",
-                    "datetime": "$datetime"
-                }
-            }
+            "records": {"$push": {"value": "$value", "datetime": "$datetime"}},
         }
     },
-    # Затем сортируем массивы и берем последние 1440 записей
+    
+    # Ограничение количества записей в каждой группе до 1440
     {
         "$project": {
             "metric_name": "$_id",
-            "records": {
-                "$slice": [
-                    {
-                        "$reverseArray": {
-                            "$sortArray": {
-                                "input": "$all_records",
-                                "sortBy": {"datetime": -1}
-                            }
-                        }
-                    },
-                    1440
-                ]
-            }
+            "records": {"$slice": ["$records", -1440]}
         }
     },
-    # Преобразование результата, чтобы удалить _id
+    
+    # Удаление ненужного поля _id
+    {"$unset": "_id"},
+    
+    # Сортировка записей внутри каждой группы по возрастанию datetime
     {
         "$project": {
-            "_id": 0,
             "metric_name": 1,
-            "records": 1
+            "records": {
+                "$sortArray": {
+                    "input": "$records",
+                    "sortBy": {"datetime": 1}
+                }
+            }
         }
     }
 ]

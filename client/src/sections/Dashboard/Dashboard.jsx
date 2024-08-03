@@ -75,7 +75,9 @@ const Table = ({table}) => {
               </thead>
               <tbody>
                   {rating_table.map((chel, index) => (
-                      <tr key={index} style={{borderBottom: (chel.index === 205) ? ('2px solid red') : ('')}} > 
+                      <tr key={index} style={{
+                        borderBottom: (Number(chel.index) === 205) ? ('2px solid red') : ('1px solid black')
+                      }} >
                           <td>{chel.index}</td>
                           <td dangerouslySetInnerHTML={{__html: formatID(chel.id)}}></td>
                           <td>{chel.max_score}</td>

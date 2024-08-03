@@ -8,9 +8,9 @@ import Plot from 'react-plotly.js';
 const interval_s = 60 // sec
 
 function formatID(v, idx) {
-  let res = "";
+  let res = v;
   if (v === 'KABAN' || v === 'QBAYES') {
-    res = "<b>" + v + "</b>";
+    res = "<b>" + res + "</b>";
   }
   if (Number(idx) > 205) {
     res = "☠️" + res; 

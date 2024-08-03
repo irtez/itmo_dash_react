@@ -17,16 +17,18 @@ async def fetch_itmo() -> pd.DataFrame:
         pages[code] = bs(page, 'lxml')
     
     info = {
-        code: {
-            'id': [],
-            'score_exam': [],
-            'score_diplom': [],
-            'original_docs': [],
-            'postup_type': [],
-            'prioritet': []
-        }
-        for code in pages
+    code: {
+        'id': [],
+        'score_exam': [],
+        'score_only_exam': [],
+        'score_dop': [],
+        'score_diplom': [],
+        'original_docs': [],
+        'postup_type': [],
+        'prioritet': []
     }
+    for code in pages
+}
     for code, page in pages.items():
         for chel in page.findAll('div', class_='RatingPage_table__item__qMY0F'):
             id_ = chel.find('p', class_='RatingPage_table__position__uYWvi').find('span').text
@@ -36,9 +38,13 @@ async def fetch_itmo() -> pd.DataFrame:
             postup_type = postup_info[1].find('span').text
             score_ex = score_info[2].text.replace('Балл ВИ+ИД: ', '')
             score_diplom = score_info[3].text.replace('Средний балл: *', '')
+            score_exam_only = score_info[1].find('span').text
+            score_dop = score_info[0].find('span').text
             orig_doc = chel.findAll('div', class_='RatingPage_table__info__quwhV')[-1].findAll('p')[-1].find('span').text
             info[code]['id'].append(id_)
             info[code]['score_exam'].append(float(score_ex))
+            info[code]['score_dop'].append(float(score_dop or '0'))
+            info[code]['score_only_exam'].append(float(score_exam_only or '0'))
             info[code]['score_diplom'].append(float(score_diplom))
             info[code]['original_docs'].append(orig_doc)
             info[code]['postup_type'].append(postup_type)
@@ -50,6 +56,8 @@ async def fetch_itmo() -> pd.DataFrame:
     res_agg = result.groupby('id', as_index=False) \
         .agg(
             max_score=('score_exam', 'max'),
+            only_exam=('score_only_exam', 'max'),
+            only_dop=('score_dop', 'max'),
             max_diplom=('score_diplom', 'max'),
             orig_docs=('original_docs', lambda x: 'да' if 'да' in x.tolist() else 'нет'),
             postup_types=('postup_type', lambda x: x.iloc[0] if len(set(x)) == 1 else list(set(x))),
@@ -59,7 +67,7 @@ async def fetch_itmo() -> pd.DataFrame:
         .reset_index(drop=True)
     return res_agg
 
-async def write_metrics(collection):
+async def write_metrics(collection, collection_table):
     res_agg = await fetch_itmo()
     metrics = {}
     metrics['1. БВИ всего'] = res_agg[res_agg.max_score >= 100].shape[0]
@@ -79,6 +87,12 @@ async def write_metrics(collection):
     metrics['8. Баллы'] = res_agg[res_agg.id.isin(CONFIG['our_ids'])].max_score.tolist()
     metrics['9. Все БВИ, подавшие доки'] = bvi_docs.shape[0]
     metrics['99. БВИ с приоритетом = 1, подавшие доки'] = bvi_docs[bvi_docs.max_prior == 1].shape[0]
+
+    my_id = res_agg[(res_agg.id == '19536506600')].index[0]
+    dupl = res_agg.loc[my_id - 15 : my_id + 30].copy()
+    dupl.loc[dupl.id == '19536506600', 'id'] = 'KABAN'
+    dupl.loc[dupl.id == '14887345416', 'id'] = 'QBAYES'
+    dupl['index'] = dupl.index + 1
     
     
     now = dt.datetime.now()#.strftime('%Y-%m-%d %H:%M:%S')
@@ -90,7 +104,9 @@ async def write_metrics(collection):
         }
         for k, v in metrics.items()
     ]
+    table_dict = {'table': dupl.to_dict(orient='records'), 'datetime': now}
     collection.insert_many(metrics)
+    collection_table.replace_one({}, table_dict, upsert=True)
     return True
 
 def get_day_suffix(day):

@@ -5,6 +5,7 @@ GLOBAL_CONFIG = {
     'mongo_host': 'mongodb://localhost:27017/',
     'mongo_db': 'Metrics_ITMO',
     'mongo_collection': 'Metrics',
+    'mongo_table_collection': 'Table',
     'links' : {
         '09 04 01': 'https://abit.itmo.ru/rating/master/budget/1896',
         '11 04 02': 'https://abit.itmo.ru/rating/master/budget/1917',

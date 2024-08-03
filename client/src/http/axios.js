@@ -1,11 +1,13 @@
 import axios from 'axios'
 
+const serverUrl = 'https://itmodash.ru/api' // http://localhost:5555/api
+
 const guestInstance = axios.create({
-    baseURL: 'https://itmodash.ru/api'
+    baseURL: serverUrl 
 })
 
 const authInstance = axios.create({
-    baseURL: 'https://itmodash.ru/api'
+    baseURL: serverUrl
 })
 
 

@@ -62,3 +62,27 @@
     align-items: center;
     flex-direction: column;
 }
+
+.table {
+    text-align: center;
+}
+
+table {
+    margin: auto;
+    border-collapse: collapse;
+    width: 80%;
+}
+
+th, td {
+    border: 1px solid black;
+    padding: 8px;
+    text-align: left;
+}
+
+td p {
+    margin: 0;
+}
+
+th {
+    background-color: #f2f2f2;
+}

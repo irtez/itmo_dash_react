@@ -3,6 +3,7 @@ import logging
 from pymongo import MongoClient
 import asyncio
 from contextlib import asynccontextmanager
+import re
 
 import uvicorn
 from fastapi import FastAPI
@@ -145,7 +146,7 @@ async def get_metrics():
     latest_metrics = list(collection.aggregate(data_pipeline))
     latest_metrics = sorted(latest_metrics, key=lambda x: x['metric_name'])
     for el in latest_metrics:
-        el['metric_name'] =  el['metric_name'][3:]
+        el['metric_name'] =  el['metric_name'][re.match(r'\d{1,5}. ', el['metric_name']).span()[1]:]
     return latest_metrics
 
 

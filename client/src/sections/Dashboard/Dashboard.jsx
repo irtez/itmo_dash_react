@@ -6,13 +6,14 @@ import Loading from '../Loading';
 import Plot from 'react-plotly.js';
 
 const interval_s = 60 // sec
+const LAST_ID = 205
 
 function formatID(v, idx) {
   let res = v;
   if (v === 'KABAN' || v === 'QBAYES') {
     res = "<b>" + res + "</b>";
   }
-  if (Number(idx) > 205) {
+  if (Number(idx) > LAST_ID) {
     res = "☠️" + res; 
   }
   return res;
@@ -80,7 +81,7 @@ const Table = ({table}) => {
               <tbody>
                   {rating_table.map((chel, index) => (
                       <tr key={index} style={{
-                        borderBottom: (Number(chel.index) === 205) ? ('2px solid red') : ('1px solid black')
+                        borderBottom: (Number(chel.index) === LAST_ID) ? ('2px solid red') : ('1px solid black')
                       }} >
                           <td>{chel.index}</td>
                           <td dangerouslySetInnerHTML={
@@ -99,6 +100,60 @@ const Table = ({table}) => {
               </tbody>
           </table>
       </div>)
+}
+
+const SinglePlot = ({metric}) => {
+  return (
+    <div className={classes.metric_main}>
+        <div key={metric.metric_name} className={classes.metric_div}>
+          <p className={classes.metric_name}><b>{metric.metric_name}</b></p>
+          <p className={classes.metric_value}>{metric.records[metric.records.length - 1].value}</p>
+          <p className={classes.metric_datetime}>{formatDate(metric.records[metric.records.length - 1].datetime)}</p>
+        </div>
+        <Plot
+        data={[
+          {
+            x: metric.records.map((record) => record.datetime),
+            y: metric.records.map((record) => record.value),
+            type: 'plot',
+          },
+        ]}
+        layout={ {width: 600, height: 350, title: metric.metric_name} }
+      />
+    </div>
+  )
+}
+
+const DoublePlot = ({metric}) => {
+  return (
+    <div className={classes.metric_main}>
+        <div key={metric.metric_name} className={classes.metric_div}>
+          <p className={classes.metric_name}><b>{metric.metric_name}</b></p>
+          <p className={classes.metric_value}>
+            Kaban: {metric.records[metric.records.length - 1].value[0] + " | "}
+            qBayes: {metric.records[metric.records.length - 1].value[1]}
+          </p>
+          <p className={classes.metric_datetime}>{formatDate(metric.records[metric.records.length - 1].datetime)}</p>
+        </div>
+        <Plot
+        data={[
+          {
+            x: metric.records.map((record) => record.datetime),
+            y: metric.records.map((record) => record.value[0]),
+            type: 'plot',
+            name: "Kaban"
+          },
+          {
+            x: metric.records.map((record) => record.datetime),
+            y: metric.records.map((record) => record.value[1]),
+            type: 'plot',
+            name: "qBayes"
+          },
+        ]}
+        layout={ {width: 600, height: 350, title: metric.metric_name} }
+      />
+    </div>
+  )
 }
 
 const Dashboard = () => {
@@ -130,57 +185,17 @@ const Dashboard = () => {
       <div className={classes.main}>
       {
         metrics.length ? (
-          metrics.map((metric) => (
-           !((metric.metric_name === 'Баллы') || (metric.metric_name === 'Место') || (metric.metric_name === 'table')) ?
-            (<div className={classes.metric_main}>
-              <div key={metric.metric_name} className={classes.metric_div}>
-                <p className={classes.metric_name}><b>{metric.metric_name}</b></p>
-                <p className={classes.metric_value}>{metric.records[metric.records.length - 1].value}</p>
-                <p className={classes.metric_datetime}>{formatDate(metric.records[metric.records.length - 1].datetime)}</p>
-              </div>
-              <Plot
-              data={[
-                {
-                  x: metric.records.map((record) => record.datetime),
-                  y: metric.records.map((record) => record.value),
-                  type: 'plot',
-                },
-              ]}
-              layout={ {width: 600, height: 350, title: metric.metric_name} }
-            />
-          </div>) : (
-            !(metric.metric_name === 'table') ? 
-            (<div className={classes.metric_main}>
-            <div key={metric.metric_name} className={classes.metric_div}>
-              <p className={classes.metric_name}><b>{metric.metric_name}</b></p>
-              <p className={classes.metric_value}>
-                Kaban: {metric.records[metric.records.length - 1].value[0] + " | "}
-                qBayes: {metric.records[metric.records.length - 1].value[1]}
-              </p>
-              <p className={classes.metric_datetime}>{formatDate(metric.records[metric.records.length - 1].datetime)}</p>
-            </div>
-            <Plot
-            data={[
-              {
-                x: metric.records.map((record) => record.datetime),
-                y: metric.records.map((record) => record.value[0]),
-                type: 'plot',
-                name: "Kaban"
-              },
-              {
-                x: metric.records.map((record) => record.datetime),
-                y: metric.records.map((record) => record.value[1]),
-                type: 'plot',
-                name: "qBayes"
-              },
-            ]}
-            layout={ {width: 600, height: 350, title: metric.metric_name} }
-          />
-        </div>) : (
-          <Table table={metric.records[0]} />
-        )
-          )
-          ))
+          metrics.map((metric) => {
+            switch (metric.metric_name) {
+              case 'Баллы':
+              case 'Место':
+                return <DoublePlot metric={metric} />;
+              case 'table':
+                return <Table table={metric.records[0]} />;
+              default:
+                return <SinglePlot metric={metric} />;
+            }
+          })
         ) : (<Loading height='50vh' />)
         
       }

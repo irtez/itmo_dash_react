@@ -81,7 +81,8 @@ const Table = ({table}) => {
               <tbody>
                   {rating_table.map((chel, index) => (
                       <tr key={index} style={{
-                        borderBottom: (Number(chel.index) === LAST_ID) ? ('2px solid red') : ('1px solid black')
+                        borderBottom: (Number(chel.index) === LAST_ID) ? ('2px solid red') : ('1px solid black'),
+                        border: ((chel.id === 'KABAN') || (chel.id === 'QBAYES')) ? ('2px solid black') : ('1px solid black')
                       }} >
                           <td>{chel.index}</td>
                           <td dangerouslySetInnerHTML={
@@ -92,7 +93,12 @@ const Table = ({table}) => {
                           <td>{chel.only_exam}</td>
                           <td>{chel.only_dop}</td>
                           <td>{chel.max_diplom}</td>
-                          <td>{chel.orig_docs}</td>
+                          <td style={
+                            {color: ((chel.id === 'KABAN') || (chel.id === 'QBAYES')) ? (
+                              chel.orig_docs === 'нет' ? ('red') : ('green')
+                            ) : ('black'),
+                          fontSize: ((chel.id === 'KABAN') || (chel.id === 'QBAYES')) ? ('16px') : ('14px')}
+                          }>{chel.orig_docs}</td>
                           <td dangerouslySetInnerHTML={{__html: formatStrOrArr(chel.postup_types)}}></td>
                           <td>{chel.max_prior}</td>
                       </tr>

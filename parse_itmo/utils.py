@@ -87,6 +87,8 @@ async def write_metrics(collection, collection_table):
     metrics['8. Баллы'] = res_agg[res_agg.id.isin(CONFIG['our_ids'])].max_score.tolist()
     metrics['9. Все БВИ, подавшие доки'] = bvi_docs.shape[0]
     metrics['99. БВИ с приоритетом = 1, подавшие доки'] = bvi_docs[bvi_docs.max_prior == 1].shape[0]
+    metrics['999. Диплом KABAN'] = 0 if res_agg[res_agg.id == CONFIG['our_ids'][0]].orig_docs.iloc[0] == 'нет' else 1
+    metrics['999. Диплом QBAYES'] = 0 if res_agg[res_agg.id == CONFIG['our_ids'][1]].orig_docs.iloc[0] == 'нет' else 1
 
     my_id = res_agg[(res_agg.id == '19536506600')].index[0]
     dupl = res_agg.loc[my_id - 15 : my_id + 30].copy()

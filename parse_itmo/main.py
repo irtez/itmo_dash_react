@@ -111,7 +111,7 @@ data_pipeline = [
     {
         "$project": {
             "metric_name": "$_id",
-            "records": {"$slice": ["$records", -N_RECORDS]}
+            "records": {"$slice": ["$records", -N_RECORDS]} if N_RECORDS and N_RECORDS > 0 else {"$records"}
         }
     },
     
@@ -131,9 +131,6 @@ data_pipeline = [
         }
     }
 ]
-
-if not N_RECORDS or N_RECORDS < 0:
-    del data_pipeline[2]
 
 
 @app.get(

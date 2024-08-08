@@ -72,63 +72,25 @@ app.add_exception_handler(RequestValidationError, validation_exception_handler)
 app.add_exception_handler(Exception, python_exception_handler)
 
 
-
-# data_pipeline = [
-#     # Группировка по имени метрики
-#     {"$group": {
-#         "_id": "$metric_name",
-#         "latest_records": {
-#             "$topN": {
-#                 "n": 1440,
-#                 "output": {
-#                     "value": "$value",
-#                     "datetime": "$datetime"
-#                 },
-#                 "sortBy": {"datetime": 1}
-#             }
-#         }
-#     }},
-#     # Преобразование результата
-#     {"$project": {
-#         "metric_name": "$_id",
-#         "records": "$latest_records",
-#         "_id": 0
-#     }}
-# ]
 data_pipeline = [
     # Сортировка по metric_name и datetime
     {"$sort": {"metric_name": 1, "datetime": 1}},
     
-    # Группировка по метрике и сбор последних 1440 значений
+    # Группировка по метрике
     {
         "$group": {
             "_id": "$metric_name",
             "records": {"$push": {"value": "$value", "datetime": "$datetime"}},
         }
     },
-    
+
+    # Ограничение количества записей в каждой группе до N_INTERVALS
     {
         "$project": {
             "metric_name": "$_id",
-            "records": {
-                "$cond": {
-                    "if": { "$or": [
-                        { "$eq": [ N_RECORDS, None ] },
-                        { "$lt": [ N_RECORDS, 0 ] }
-                    ]},
-                    "then": "$records",
-                    "else": {"$slice": ["$records", -N_RECORDS]}
-                }
-            }
+            "records": {"$slice": ["$records", -N_RECORDS]} if N_RECORDS and N_RECORDS > 0 else "$records"
         }
     },
-    # # Ограничение количества записей в каждой группе до 1440
-    # {
-    #     "$project": {
-    #         "metric_name": "$_id",
-    #         "records": {"$slice": ["$records", -N_RECORDS]}
-    #     }
-    # },
     
     # Удаление ненужного поля _id
     {"$unset": "_id"},
@@ -146,6 +108,7 @@ data_pipeline = [
         }
     }
 ]
+
 
 
 @app.get(

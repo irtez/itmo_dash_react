@@ -22,7 +22,8 @@ collection_table = db[CONFIG['mongo_table_collection']]
 
 import utils as u
 
-INTERVAL = 60
+INTERVAL = 3600
+N_RECORDS = -1
 
 async def periodic_task():
     while True:
@@ -110,7 +111,7 @@ data_pipeline = [
     {
         "$project": {
             "metric_name": "$_id",
-            "records": {"$slice": ["$records", -1440]}
+            "records": {"$slice": ["$records", -N_RECORDS]}
         }
     },
     
@@ -131,6 +132,8 @@ data_pipeline = [
     }
 ]
 
+if not N_RECORDS or N_RECORDS < 0:
+    del data_pipeline[2]
 
 
 @app.get(

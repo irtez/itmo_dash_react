@@ -5,7 +5,7 @@ import { getMetrics } from '../../http/metricAPI';
 import Loading from '../Loading';
 import Plot from 'react-plotly.js';
 
-const interval_s = 60 // sec
+const interval_s = 3600 // sec
 const LAST_ID = 205
 
 function formatID(v, idx) {

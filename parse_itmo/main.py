@@ -23,7 +23,7 @@ collection_table = db[CONFIG['mongo_table_collection']]
 import utils as u
 
 INTERVAL = 3600
-N_RECORDS = -1
+N_RECORDS = None
 
 async def periodic_task():
     while True:
@@ -107,13 +107,28 @@ data_pipeline = [
         }
     },
     
-    # Ограничение количества записей в каждой группе до 1440
     {
         "$project": {
             "metric_name": "$_id",
-            "records": {"$slice": ["$records", -N_RECORDS]} if N_RECORDS and N_RECORDS > 0 else {"$records"}
+            "records": {
+                "$cond": {
+                    "if": { "$or": [
+                        { "$eq": [ N_RECORDS, None ] },
+                        { "$lt": [ N_RECORDS, 0 ] }
+                    ]},
+                    "then": "$records",
+                    "else": {"$slice": ["$records", -N_RECORDS]}
+                }
+            }
         }
     },
+    # # Ограничение количества записей в каждой группе до 1440
+    # {
+    #     "$project": {
+    #         "metric_name": "$_id",
+    #         "records": {"$slice": ["$records", -N_RECORDS]}
+    #     }
+    # },
     
     # Удаление ненужного поля _id
     {"$unset": "_id"},

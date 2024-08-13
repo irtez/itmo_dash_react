@@ -19,16 +19,17 @@ client = MongoClient(CONFIG['mongo_host'])
 db = client[CONFIG['mongo_db']]
 collection = db[CONFIG['mongo_collection']]
 collection_table = db[CONFIG['mongo_table_collection']]
+collection_orders = db[CONFIG['mongo_table_orders']]
 
 import utils as u
 
-INTERVAL = 3600
-N_RECORDS = None
+INTERVAL = 60
+N_RECORDS = 1440
 
 async def periodic_task():
     while True:
         logger.info("Started collecting metrics")
-        res = await u.write_metrics(collection, collection_table)
+        res = await u.write_metrics(collection, collection_table, collection_orders)
         if res:
             logger.info(f"Collected metrics, sleeping {INTERVAL} sec")
         else:
@@ -126,6 +127,11 @@ async def get_metrics():
     latest_metrics = sorted(latest_metrics, key=lambda x: x['metric_name'])
     for el in latest_metrics:
         el['metric_name'] =  el['metric_name'][re.match(r'\d{1,5}. ', el['metric_name']).span()[1]:]
+    
+    orders = collection_orders.find_one()
+    del orders['_id']
+    latest_metrics.append({'metric_name': 'orders', 'records': [orders]})
+    
     table = collection_table.find_one()
     del table['_id']
     latest_metrics.append({'metric_name': 'table', 'records': [table]})

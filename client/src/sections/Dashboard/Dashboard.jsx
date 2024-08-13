@@ -5,7 +5,7 @@ import { getMetrics } from '../../http/metricAPI';
 import Loading from '../Loading';
 import Plot from 'react-plotly.js';
 
-const interval_s = 3600 // sec
+const interval_s = 60 // sec
 const LAST_ID = 205
 
 function formatID(v, idx) {
@@ -162,6 +162,19 @@ const DoublePlot = ({metric}) => {
   )
 }
 
+const Orders = ({orders}) => {
+  return (
+    <div className={classes.orders}>
+        <h2 style={{paddingBottom: '20px', textAlign: 'center'}}>Приказы на {formatDate(orders.datetime)}</h2>
+        {orders['orders'].reverse().map((order) => {
+          return (<p key={order.link}>
+            <a style={{color: order.text.includes('13.08.2024') ? 'green' : 'red'}} href={order.link}>{order.text}</a>
+          </p>)
+        })} 
+    </div>
+  )
+}
+
 const Dashboard = () => {
   const [metrics, setMetrics] = useState([])
   const fetchMetrics = async () => {
@@ -198,6 +211,8 @@ const Dashboard = () => {
                 return <DoublePlot metric={metric} />;
               case 'table':
                 return <Table table={metric.records[0]} />;
+              case 'orders':
+                return <Orders orders={metric.records[0]} />;
               default:
                 return <SinglePlot metric={metric} />;
             }

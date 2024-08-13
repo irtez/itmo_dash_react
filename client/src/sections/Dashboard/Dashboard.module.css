@@ -86,3 +86,11 @@ td p {
 th {
     background-color: #f2f2f2;
 }
+
+.orders {
+    width: 50vw;
+    padding: 50px;
+    height: fit-content;
+    background: linear-gradient(90deg, rgba(151,166,230,1) 0%, rgba(0,212,255,1) 100%);
+    border: 1px solid black;
+}

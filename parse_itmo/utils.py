@@ -67,7 +67,7 @@ async def fetch_itmo() -> pd.DataFrame:
         .reset_index(drop=True)
     return res_agg
 
-async def write_metrics(collection, collection_table):
+async def write_metrics(collection, collection_table, collection_orders):
     res_agg = await fetch_itmo()
     metrics = {}
     metrics['1. БВИ всего'] = res_agg[res_agg.max_score >= 100].shape[0]
@@ -109,6 +109,18 @@ async def write_metrics(collection, collection_table):
     table_dict = {'table': dupl.to_dict(orient='records'), 'datetime': now}
     collection.insert_many(metrics)
     collection_table.replace_one({}, table_dict, upsert=True)
+
+    link = 'https://abit.itmo.ru/orders/master'
+    page = requests.get(link).text
+    page_bs = bs(page, 'lxml')
+
+    orders = [
+        {"link": "https://abit.itmo.ru" + li.find('a')['href'], "text": li.text} 
+        for li in page_bs.find('div', class_='Content_content__31bOk container').findAll('li')
+    ]
+    orders = {"orders": orders, "datetime": now}
+    collection_orders.replace_one({}, orders, upsert=True)
+    
     return True
 
 def get_day_suffix(day):

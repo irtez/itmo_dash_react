@@ -6,6 +6,7 @@ GLOBAL_CONFIG = {
     'mongo_db': 'Metrics_ITMO',
     'mongo_collection': 'Metrics',
     'mongo_table_collection': 'Table',
+    'mongo_table_orders': 'Orders',
     'links' : {
         '09 04 01': 'https://abit.itmo.ru/rating/master/budget/1896',
         '11 04 02': 'https://abit.itmo.ru/rating/master/budget/1917',
